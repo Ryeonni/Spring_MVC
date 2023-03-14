@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CartDAO">
+
+<!-- 장바구니 등록 -->
+<insert id="insert" parameterType="cart" useGeneratedKeys="true" keyProperty="idx">
+ INSERT INTO cart(product_idx,user_id,amount)
+ VALUES(#{productIdx},#{userId},#{amount})
+</insert>
+
+<!-- 장바구니 수정 -->
+<update id="update" parameterType="cart">
+ UPDATE cart SET amount=#{amount} 
+ WHERE cart_idx=#{cartIdx} and user_id=#{userId}
+</update>
+
+<!-- 장바구니 수량변경:똑같은상품 추가시-->
+<update id="updateCart" parameterType="cart">
+ UPDATE cart SET amount=amount+#{amount} WHERE product_idx=#{productIdx} and user_id=#{userId}
+</update>
+
+<!-- 장바구니 삭제 -->
+<delete id="delete" parameterType="cart">
+ DELETE FROM cart WHERE cart_idx=#{cartIdx} 
+</delete>
+
+<!-- 장바구니 전체삭제 -->
+<delete id="deleteAll" parameterType="cart">
+ DELETE FROM cart WHERE user_id=#{userId}
+</delete>
+
+<!-- 장바구니 조회 -->
+<select id="cartAll" parameterType="cart" resultType="cart">
+ SELECT cart_idx as cartIdx, user_id as userId, name, c.product_idx as productIdx,  
+ 		product_name as productName, price, amount, (price*amount) sumPrice
+ FROM cart c
+ 	INNER JOIN user u
+ 	ON c.user_id = u.id
+ 	INNER JOIN product p
+ 	ON c.product_idx = p.product_idx
+ WHERE c.user_id=#{userId}
+ ORDER BY c.product_idx asc
+</select>
+
+<!-- 회원 장바구니 수량 확인 -->
+<select id="userCart" parameterType="cart" resultType="int">
+ SELECT count(*)
+ FROM cart 
+ WHERE user_id=#{userId}
+</select>
+
+<!-- 장바구니 동일상품 레코드 확인 -->
+<select id="countCart" parameterType="cart" resultType="int">
+ SELECT count(*)
+ FROM cart 
+ WHERE product_idx=#{productIdx} and user_id=#{userId}
+</select>
+
+<!-- 장바구니 금액합계 -->
+<select id="totalCart" resultType="int">
+ SELECT IFNULL(sum(price*amount),0) totalPrice
+ FROM cart c
+ 	INNER JOIN product p
+ 	ON c.product_idx = p.product_idx
+ WHERE c.user_id=#{userId}
+</select>
+
+<!-- 주문 -->
+<insert id="insertOrder" parameterType="cart" useGeneratedKeys="true" keyProperty="idx">
+ INSERT INTO order_tbl(product_idx,user_id,amount)
+ VALUES(#{productIdx},#{userId},#{amount})
+</insert>
+
+<!-- 이름,아이디,금액으로 총 구매금액 조회 -->
+<select id="userSales" resultType="cart"> 
+SELECT name, id as userId, sum(price*amount) sumPrice
+FROM user u
+	INNER JOIN order_tbl o
+		ON u.id=o.user_id
+	INNER JOIN product p
+		ON o.product_idx=p.product_idx
+GROUP BY name, id
+</select> 
+
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC 
+  "-//mybatis.org//DTD Config 3.0//EN" 
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+  <typeAliases>
+    <typeAlias alias="user" type="com.ryeonni.user.UserVO" />  
+    <typeAlias alias="product" type="com.ryeonni.product.ProductVO" />  
+    <typeAlias alias="board" type="com.ryeonni.board.BoardVO" />  
+    <typeAlias alias="cart" type="com.ryeonni.cart.CartVO" />  
+  </typeAliases>
+
+  <mappers>
+    <mapper resource="mappings/User-mapping.xml" />
+    <mapper resource="mappings/Product-mapping.xml" />
+    <mapper resource="mappings/Board-mapping.xml" />
+    <mapper resource="mappings/Cart-mapping.xml" />
+  </mappers>
+</configuration> 

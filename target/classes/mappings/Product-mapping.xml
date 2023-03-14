@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProductDAO">
+
+<!-- 상품등록 -->
+<insert id="insert" parameterType="product" useGeneratedKeys="true" keyProperty="idx">
+ INSERT INTO product(product_name,price,size,description,img)
+ VALUES(#{productName},#{price},#{size},#{description},#{productImgStr})
+</insert>
+
+<!-- 상품수정 -->
+<update id="update" parameterType="product">
+ UPDATE product 
+ SET product_name=#{productName}, price=#{price}, description=#{description},
+ 	 img=#{productImgStr}
+ WHERE product_idx=#{productIdx}
+</update>
+
+<!-- 조회수 -->
+<update id="cnt" parameterType="int">
+ UPDATE product SET cnt=cnt+1 WHERE product_idx=#{productIdx}
+</update>
+
+<!-- 상품삭제 -->
+<delete id="delete" parameterType="product">
+ DELETE FROM product WHERE product_idx=#{productIdx}
+</delete>
+
+<!-- 상품 1개만 조회 -->
+<select id="productOne" resultType="product">
+ SELECT product_idx as productIdx, product_name as productName, price, 
+ 		description, img as productImgStr
+ FROM product WHERE product_idx=#{productIdx}
+</select>
+
+<!-- 상품 전체 조회 -->
+<select id="productAllList" resultType="product">
+SELECT product_idx as productIdx, product_name as productName, price, 
+ 		description, img as productImgStr, cnt 
+ FROM product 
+ ORDER BY productIdx asc
+</select>
+
+<!-- 상품 전체 조회 + 페이징 + 검색 -->
+<select id="productAll" resultType="product">		
+ SELECT Q.*	
+  FROM ( SELECT @rownum:=@rownum+1 as rownum, product_idx as productIdx, 
+                product_name as productName, price, size, description, 
+                img as productImgStr, cnt	
+	     FROM product, (SELECT @rownum:=0) as rnum 
+	     WHERE 1=1
+ <if test="searchCondition == 'productIdx'">	
+ and product_idx like CONCAT('%',#{searchKeyword},'%')	
+ </if>	
+ <if test="searchCondition == 'productName'">	
+ and product_name like CONCAT('%',#{searchKeyword},'%')	
+ </if>	
+ <![CDATA[ 	
+ ORDER BY productIdx asc ) Q	
+ WHERE rownum >= #{start} and rownum <= #{start}+#{pageSize}-1 ]]>
+</select>
+
+<!-- 전체레코드 수 -->
+<select id="productTotal" parameterType="product" resultType="int">
+ SELECT count(*) 
+ FROM product 
+ WHERE 1=1
+ <if test="searchCondition == 'productIdx'">
+ and product_idx like CONCAT('%',#{searchKeyword},'%')
+ </if>
+ <if test="searchCondition == 'productName'">
+ and product_name like CONCAT('%',#{searchKeyword},'%')
+ </if>
+</select>
+ 
+</mapper>

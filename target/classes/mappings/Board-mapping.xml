@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="BoardDAO">
+
+<!-- 글등록 -->
+<insert id="insert" parameterType="board" useGeneratedKeys="true" keyProperty="idx">
+ INSERT INTO board(writer,title,content)
+ VALUES(#{writer},#{title},#{content})
+</insert>
+
+<!-- 글수정 -->
+<update id="update" parameterType="board">
+ UPDATE board
+ SET title=#{title}, content=#{content}
+ WHERE board_idx=#{boardIdx}
+</update>
+
+<!-- 조회수 -->
+<update id="cnt" parameterType="int">
+ UPDATE board SET cnt=cnt+1 WHERE board_idx=#{boardIdx}
+</update>
+
+<!-- 글삭제 -->
+<delete id="delete" parameterType="board">
+ DELETE FROM board WHERE board_idx=#{boardIdx}
+</delete>
+
+<!-- 글 1개만 조회 -->
+<select id="boardOne" parameterType="board" resultType="board">
+ SELECT board_idx as boardIdx, writer, title, content, regdate, cnt
+ FROM board WHERE board_idx=#{boardIdx}
+</select>
+
+<!-- 글 전체조회 -->
+<select id="boardAllList" parameterType="board" resultType="board">
+ SELECT board_idx as boardIdx, writer, title, content, regdate, cnt FROM board 
+</select>
+
+<!-- 글 전체조회 + 페이징 + 검색 -->
+<select id="boardAll" parameterType="board" resultType="board">
+SELECT total.*	
+  FROM ( SELECT @rownum:=@rownum+1 as rownum, board_idx as boardIdx, writer, 
+         title, content, regdate, cnt 
+         FROM board, (SELECT @rownum:=0) as rnum WHERE 1=1
+ <if test="searchCondition == 'title'">		
+ and title like CONCAT('%',#{searchKeyword},'%')		
+ </if>		
+ <if test="searchCondition == 'content'">		
+ and content like CONCAT('%',#{searchKeyword},'%')		
+ </if>	
+ <if test="searchCondition == 'writer'">		
+ and writer like CONCAT('%',#{searchKeyword},'%')		
+ </if>	
+ <![CDATA[		
+ ORDER BY boardIdx asc ) total	
+ WHERE rownum >= #{start} and rownum <= #{start}+#{pageSize} -1 ]]>
+</select>
+
+<!-- 전체레코드 수 -->
+<select id="boardTotal" parameterType="board" resultType="int">
+ SELECT count(*) FROM board WHERE 1=1
+ <if test="searchCondition == 'title'">		
+ and title like CONCAT('%',#{searchKeyword},'%')		
+ </if>		
+ <if test="searchCondition == 'content'">		
+ and content like CONCAT('%',#{searchKeyword},'%')		
+ </if>	
+ <if test="searchCondition == 'writer'">		
+ and writer like CONCAT('%',#{searchKeyword},'%')		
+ </if>	
+</select>
+
+</mapper>
